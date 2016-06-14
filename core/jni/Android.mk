@@ -251,7 +251,10 @@ LOCAL_SHARED_LIBRARIES := \
     libminikin \
     libprocessgroup \
     libnativebridge \
-    libradio_metadata
+    libradio_metadata \
+    libsuda-phoneloc-jni    
+    
+    #libsudautils
 
 LOCAL_SHARED_LIBRARIES += \
     libhwui \
