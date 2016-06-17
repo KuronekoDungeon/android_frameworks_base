@@ -30,6 +30,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.graphics.Typeface;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.provider.Settings;
@@ -63,6 +64,7 @@ public class KeyguardStatusView extends GridLayout implements
     private TextClock mDateView;
     private TextClock mClockView;
     private TextView mOwnerInfo;
+    private TextView mChineseDate;
     private View mWeatherView;
     private TextView mWeatherCity;
     private ImageView mWeatherConditionImage;
@@ -101,6 +103,9 @@ public class KeyguardStatusView extends GridLayout implements
         @Override
         public void onStartedWakingUp() {
             setEnableMarquee(true);
+            boolean mShow = Settings.System.getIntForUser(getContext().getContentResolver(),
+                  Settings.System.CHINESE_DATE_VIEW, 1, UserHandle.USER_CURRENT) == 1;
+            mChineseDate.setVisibility(mShow ? View.VISIBLE : View.GONE);
             mEnableRefresh = true;
             refresh();
         }
@@ -108,6 +113,9 @@ public class KeyguardStatusView extends GridLayout implements
         @Override
         public void onFinishedGoingToSleep(int why) {
             setEnableMarquee(false);
+            boolean mShow = Settings.System.getIntForUser(getContext().getContentResolver(),
+                  Settings.System.CHINESE_DATE_VIEW, 1, UserHandle.USER_CURRENT) == 1;
+            mChineseDate.setVisibility(mShow ? View.VISIBLE : View.GONE);
             mEnableRefresh = false;
         }
 
@@ -153,7 +161,8 @@ public class KeyguardStatusView extends GridLayout implements
         mWeatherConditionImage = (ImageView) findViewById(R.id.weather_image);
         mWeatherCurrentTemp = (TextView) findViewById(R.id.current_temp);
         mWeatherConditionText = (TextView) findViewById(R.id.condition);
-
+        mChineseDate = (TextView) findViewById(R.id.date_chinese);
+        
         boolean shouldMarquee = KeyguardUpdateMonitor.getInstance(mContext).isDeviceInteractive();
         setEnableMarquee(shouldMarquee);
         refresh();
