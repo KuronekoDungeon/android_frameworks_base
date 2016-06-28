@@ -97,10 +97,6 @@ public class ScreenshotEditor extends Service implements View.OnClickListener {
     private SharedPreferences preferences;
     private float mDensity;
 
-    public ScreenshotEditor() {
-
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -171,7 +167,7 @@ public class ScreenshotEditor extends Service implements View.OnClickListener {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        screenshotPath = intent.getStringExtra("screenshotPath");
+        screenshotPath = intent.getStringExtra(GlobalScreenshot.SCREENSHOT_FILE_PATH);
         addView();
         return Service.START_STICKY;
     }
@@ -405,7 +401,7 @@ public class ScreenshotEditor extends Service implements View.OnClickListener {
         workModeButton = (ImageButton) mainLayout.findViewById(R.id.workMode);
         workMode = preferences.getInt(KEY_WORK_MODE, WORK_MODE_CROP);
         ImageArrayAdapter adapter = new ImageArrayAdapter(mContext,
-                new Integer[]{R.drawable.ic_image_crop, R.drawable.ic_image_edit, R.drawable.ic_action_visibility});
+                new Integer[]{R.drawable.ic_image_crop, R.drawable.ic_image_edit, R.drawable.ic_action_visibility, R.drawable.ic_image_blur});
         listPopupWindow.setAdapter(adapter);
         listPopupWindow.setAnchorView(workModeButton);
         listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -455,6 +451,7 @@ public class ScreenshotEditor extends Service implements View.OnClickListener {
                 deleteBitmap(screenshotPath);
                 break;
             case R.id.share:
+                cropView.mergeBlur(); 
                 boolean cropAnytime = Settings.System.getInt(getContentResolver(), Settings.System.SCREENSHOT_CROP_BEHAVIOR, 1) != 0;
                 bm = cropAnytime ? cropView.getCroppedBitmap() : cropView.getImageBitmap();
                 cropView.setCropEnabled(false);
@@ -464,6 +461,7 @@ public class ScreenshotEditor extends Service implements View.OnClickListener {
                 removeView();
                 break;
             case R.id.save:
+                cropView.mergeBlur(); 
                 cropAnytime = Settings.System.getInt(getContentResolver(), Settings.System.SCREENSHOT_CROP_BEHAVIOR, 1) != 0;
                 bm = cropAnytime ? cropView.getCroppedBitmap() : cropView.getImageBitmap();
                 if (saveBitmap(bm))
@@ -495,6 +493,8 @@ public class ScreenshotEditor extends Service implements View.OnClickListener {
             case 0:
                 cropView.setCropEnabled(true);
                 cropView.setDrawEnabled(false);
+                cropView.setBlurEnabled(false);
+                cropView.mergeBlur();
                 workModeButton.setImageResource(R.drawable.ic_image_crop);
                 layoutWorkModeDraw.setVisibility(View.GONE);
                 layoutWorkModeCrop.setVisibility(View.VISIBLE);
@@ -502,6 +502,8 @@ public class ScreenshotEditor extends Service implements View.OnClickListener {
             case 1:
                 cropView.setCropEnabled(false);
                 cropView.setDrawEnabled(true);
+                cropView.setBlurEnabled(false);
+                cropView.mergeBlur();
                 workModeButton.setImageResource(R.drawable.ic_image_edit);
                 layoutWorkModeDraw.setVisibility(View.VISIBLE);
                 layoutWorkModeCrop.setVisibility(View.GONE);
@@ -509,7 +511,17 @@ public class ScreenshotEditor extends Service implements View.OnClickListener {
             case 2:
                 cropView.setCropEnabled(false);
                 cropView.setDrawEnabled(false);
+                cropView.setBlurEnabled(false);
+                cropView.mergeBlur();
                 workModeButton.setImageResource(R.drawable.ic_action_visibility);
+                layoutWorkModeDraw.setVisibility(View.GONE);
+                layoutWorkModeCrop.setVisibility(View.GONE);
+                break;
+            case 3:
+                cropView.setCropEnabled(false);
+                cropView.setDrawEnabled(false);
+                cropView.setBlurEnabled(true);
+                workModeButton.setImageResource(R.drawable.ic_image_blur);
                 layoutWorkModeDraw.setVisibility(View.GONE);
                 layoutWorkModeCrop.setVisibility(View.GONE);
                 break;
