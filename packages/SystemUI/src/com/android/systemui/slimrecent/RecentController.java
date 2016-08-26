@@ -108,6 +108,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private int mUserGravity;
     private int mPanelColor;
     private int mVisibility;
+    private int mImmersiveRecents;
 
     private float mScaleFactor = DEFAULT_SCALE_FACTOR;
 
@@ -429,41 +430,40 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     /**
-     * For smooth user experience we attach the same systemui visbility
-     * flags the current app, where the user is on, has set.
+     * Set how to handle statusbar and navbar
+     * when showing the slim recents panel
      */
+
     private void setSystemUiVisibilityFlags() {
         int vis = 0;
         try {
             vis = mWindowManagerService.getSystemUIVisibility();
         } catch (RemoteException ex) {
         }
-        boolean layoutBehindNavigation = true;
-        int newVis = View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-        if ((vis & View.STATUS_BAR_TRANSLUCENT) != 0) {
-            newVis |= View.STATUS_BAR_TRANSLUCENT
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-        }
-        if ((vis & View.NAVIGATION_BAR_TRANSLUCENT) != 0) {
-            newVis |= View.NAVIGATION_BAR_TRANSLUCENT;
-        }
-        if ((vis & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) != 0) {
-            newVis |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            layoutBehindNavigation = false;
-        }
-        if ((vis & View.SYSTEM_UI_FLAG_FULLSCREEN) != 0) {
-            newVis |= View.SYSTEM_UI_FLAG_FULLSCREEN;
-        }
-        if ((vis & View.SYSTEM_UI_FLAG_IMMERSIVE) != 0) {
-            newVis |= View.SYSTEM_UI_FLAG_IMMERSIVE;
-            layoutBehindNavigation = false;
-        }
-        if ((vis & View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY) != 0) {
-            newVis |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            layoutBehindNavigation = false;
-        }
-        if (layoutBehindNavigation) {
-            newVis |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+
+        boolean isPrimary = UserHandle.getCallingUserId() == UserHandle.USER_OWNER;
+        int immersiveRecents = isPrimary ? mImmersiveRecents : 0;
+
+        switch (immersiveRecents) {
+            case 0:
+               mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+            break;
+            case 1:
+               mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            break;
+            case 2:
+               mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            break;
+            case 3:
+               mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            break;
         }
         mParentView.setSystemUiVisibility(newVis);
         mVisibility = newVis;
@@ -601,6 +601,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
                     false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_APP_SIDEBAR_OPEN_SIMULTANEOUSLY),
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.IMMERSIVE_RECENTS),
                     false, this, UserHandle.USER_ALL);
             update();
         }
@@ -677,6 +679,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
             mAppSidebarOpenSimultaneously = Settings.System.getIntForUser(resolver,
                     Settings.System.RECENT_APP_SIDEBAR_OPEN_SIMULTANEOUSLY, 1,
                     UserHandle.USER_CURRENT) == 1;
+            mImmersiveRecents = Settings.System.getIntForUser(
+                    resolver, Settings.System.IMMERSIVE_RECENTS, 0,
+                    UserHandle.USER_CURRENT);
         }
     }
 
