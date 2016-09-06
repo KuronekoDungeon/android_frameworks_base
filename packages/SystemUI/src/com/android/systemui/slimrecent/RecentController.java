@@ -434,6 +434,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
      * when showing the slim recents panel
      */
 
+
     private void setSystemUiVisibilityFlags() {
         int vis = 0;
         try {
@@ -446,31 +447,31 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
         switch (immersiveRecents) {
             case 0:
-               mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-            break;
+                mVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
+                break;
             case 1:
-               mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                mVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-            break;
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                break;
             case 2:
-               mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                mVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-            break;
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                break;
             case 3:
-               mParentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                mVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-            break;
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                break;
         }
-        mParentView.setSystemUiVisibility(newVis);
-        mVisibility = newVis;
+        mParentView.setSystemUiVisibility(mVisibility);
         if (mAppSidebar != null){
-            mAppSidebar.setSystemUiVisibility(newVis);
+            mAppSidebar.setSystemUiVisibility(mVisibility);
         }
     }
+
 
     // Returns if panel is currently showing.
     public boolean isShowing() {
@@ -601,6 +602,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
                     false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_APP_SIDEBAR_OPEN_SIMULTANEOUSLY),
+                    false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.IMMERSIVE_RECENTS),
                     false, this, UserHandle.USER_ALL);
